@@ -3,12 +3,16 @@
 App penjejak perbelanjaan peribadi — satu fail `index.html`, tanpa build.
 
 ## Ciri
-- Bajet bulanan dengan papan kapur, bar kemajuan & baki
+- Bajet bulanan dengan papan kapur, bar kemajuan, baki & amaran unjuran terlebih bajet
 - Kategori belanja/pendapatan dengan ikon, warna & bajet setiap kategori
-- Carta kategori, belanja harian & trend 6 bulan
-- Cari & tapis transaksi, salin CSV
-- Bawa baki ke bulan depan, sorok transaksi akan datang, mod gelap
+- Kategori **bayaran balik (refund)** — ditolak daripada belanja, bukan ditambah
+- **Bil berulang** — tanda transaksi "Ulang setiap bulan", app ingatkan & rekod bulan depan
+- Carta kategori (tekan untuk lihat transaksi), belanja harian (tekan bar) & trend 6 bulan
+- Carian merentas semua bulan, tapis jenis/kategori, salin CSV
+- Padam dengan **Batal (undo)**
+- Bawa baki ke bulan depan, abaikan transaksi akan datang, mod gelap
 - Sandaran & pulih JSON
+- Boleh dipasang ke skrin utama (Add to Home Screen)
 
 ## Guna
 Live: https://abedinauto.github.io/tracker/
