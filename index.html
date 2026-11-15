@@ -155,7 +155,24 @@ body.dark .fab{color:#1a1816}
 .dlg .box{background:var(--card);border-radius:20px;padding:20px;max-width:340px;width:100%}
 .dlg p{margin:0 0 16px;line-height:1.45}
 .mt{margin-top:10px}
-.rowbtn{width:100%;color:inherit;font:inherit;padding:0;text-align:left}
+.ic{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.2em}
+.ic.sm{width:.95em;height:.95em}
+.cic .ic{width:22px;height:22px;stroke-width:1.9}
+.cic{color:var(--ink)}
+.cic.big{width:54px;height:54px;border-radius:16px}.cic.big .ic{width:28px;height:28px}
+.catpick .cic .ic{width:20px;height:20px}
+.emojis button{display:grid;place-items:center;padding:8px 0}.emojis .ic{width:22px;height:22px}
+.iconbtn .ic{width:22px;height:22px;stroke-width:2.2}
+.chev{display:flex}.chev .ic{width:18px;height:18px}
+.fab .ic{width:28px;height:28px;stroke-width:2.4}
+.banner{display:flex;gap:8px;align-items:flex-start}.banner .ic{margin-top:1px}
+.warnchalk .ic{stroke-width:2}
+.h3i{display:flex;gap:6px;align-items:center;font-weight:800;color:var(--ink);font-size:16px}
+.tag .ic{width:11px;height:11px;vertical-align:-1px}
+.top .act{display:inline-flex;gap:5px;align-items:center}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;margin-right:5px;vertical-align:1px}
+.rowbtn{width:100%;color:inherit;font-family:inherit;padding:0;text-align:left;align-items:center}
+.rowbtn .ic{opacity:.7;margin-left:4px}
 .rowbtn:active{opacity:.7}
 .pill.away{background:var(--brown);color:#fff8f0}
 body.dark .pill.away{color:#1a1816}
@@ -188,7 +205,7 @@ svg [data-day],svg [data-month]{cursor:pointer}
 <nav class="tabbar"><div class="in">
   <button class="tab" data-v="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Belanja</button>
   <button class="tab" data-v="tx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M12 2v4M16 2v4M8 11h8M8 15h8"/></svg>Transaksi</button>
-  <button class="tab" id="fabBtn" aria-label="Tambah"><div class="fab">+</div></button>
+  <button class="tab" id="fabBtn" aria-label="Tambah"><div class="fab"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></div></button>
   <button class="tab" data-v="cats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 6h4M10 12h4M10 18h4"/></svg>Kategori</button>
   <button class="tab" data-v="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Tetapan</button>
 </div></nav>
@@ -200,15 +217,77 @@ svg [data-day],svg [data-month]{cursor:pointer}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ========== ICONS (inline SVG, stroke style) ========== */
+const ICONS={
+phone:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+bandage:'<rect x="1.5" y="8" width="21" height="8" rx="4" transform="rotate(-45 12 12)"/><path d="M10.5 10.5h.01M13.5 13.5h.01M10.5 13.5h.01M13.5 10.5h.01"/>',
+pill:'<path d="M10.5 20.5a5 5 0 0 1-7-7l6-6a5 5 0 0 1 7 7z"/><path d="M8.5 8.5l7 7"/>',
+bus:'<rect x="4" y="3" width="16" height="15" rx="2"/><path d="M4 11h16M8 21v-3M16 21v-3M8 14.5h.01M16 14.5h.01"/>',
+car:'<path d="M5 17H3v-5l2.5-5h13l2.5 5v5h-2M5 12h14"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M9.5 17h5"/>',
+fuel:'<path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M4 10h10"/><path d="M14 8h2a2 2 0 0 1 2 2v6a2 2 0 0 0 4 0V9l-3-3"/>',
+run:'<circle cx="15" cy="4.5" r="2"/><path d="M7 21l3-6 3 2v5M10 15l1.5-5.5 3.5 2.5 3 1M11.5 9.5L8 11l-2 3"/>',
+cart:'<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/>',
+tag:'<path d="M3 12V3h9l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+baby:'<circle cx="12" cy="8" r="5"/><path d="M10 7.5h.01M14 7.5h.01M10.5 10.2c1 .7 2 .7 3 0M6 21c0-3 2.5-5 6-5s6 2 6 5"/>',
+laptop:'<rect x="4" y="4" width="16" height="11" rx="1.5"/><path d="M2 19h20"/>',
+monitor:'<rect x="3" y="3" width="18" height="13" rx="2"/><path d="M8 21h8M12 16v5"/>',
+hammer:'<path d="M15 12l-8.5 8.5a2.1 2.1 0 0 1-3-3L12 9"/><path d="M17.6 15L22 10.6M20 8.5l-5.5-5.5H11l1.5 1.5v2l4 4h2z"/>',
+plane:'<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+signal:'<path d="M4 20v-3M9 20v-7M14 20V9M19 20V4"/>',
+tv:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 3l4 4 4-4"/>',
+wifi:'<path d="M2 9a14 14 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01"/>',
+bulb:'<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/>',
+food:'<path d="M4 3v8a3 3 0 0 0 3 3v7M7 3v8M10 3v8a3 3 0 0 1-3 3M18 21V3c-2.5 1-4 4-4 8h4"/>',
+coffee:'<path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 2v3M12 2v3"/>',
+bowl:'<path d="M3 11h18a9 9 0 0 1-18 0zM7 21h10M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/>',
+home:'<path d="M3 11l9-8 9 8M5 9.5V21h14V9.5M10 21v-6h4v6"/>',
+droplet:'<path d="M12 2.5s7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 7-12 7-12z"/>',
+zap:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13M12 8C10.5 4 7 3.5 7 6s3 2 5 2c2 0 5 .5 5-2s-3.5-2-5 2z"/>',
+game:'<rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3M15 12h.01M18 13.5h.01"/>',
+book:'<path d="M4 19.5V4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5zM4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>',
+shirt:'<path d="M8 3L3 6l2 4 3-1v12h8V9l3 1 2-4-5-3c0 2-2 3-4 3S8 5 8 3z"/>',
+scissors:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.5 8L20 19M8.5 16L20 5"/>',
+paw:'<circle cx="5.5" cy="10" r="2"/><circle cx="9" cy="5" r="2"/><circle cx="15" cy="5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 11c-3 0-6 4.5-6 7.5 0 2 2 2.5 3 2.5s2-.7 3-.7 2 .7 3 .7 3-.5 3-2.5c0-3-3-7.5-6-7.5z"/>',
+health:'<path d="M19.5 13.5L12 21l-7.5-7.5A5 5 0 0 1 12 6.6a5 5 0 0 1 7.5 6.9z"/><path d="M12 10v6M9 13h6"/>',
+cap:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5M22 9v6"/>',
+wallet:'<path d="M19 7V5a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6"/><path d="M17 14h.01"/>',
+cash:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>',
+bank:'<path d="M3 21h18M4 10h16M12 3l9 5H3zM6 10v8M10 10v8M14 10v8M18 10v8"/>',
+trend:'<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',
+handshake:'<path d="M2 11l4-4 4 1 3-2 3 1 6 4"/><path d="M6 7l-4 4 6 6a1.5 1.5 0 0 0 2-2M10 15l2 2a1.5 1.5 0 0 0 2-2M12 13l3 3a1.5 1.5 0 0 0 2-2l-4-4M22 11l-4 4"/>',
+wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',
+receipt:'<path d="M5 2v20l2.5-1.5L10 22l2-1.5 2 1.5 2.5-1.5L19 22V2l-2.5 1.5L14 2l-2 1.5L10 2 7.5 3.5z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+refund:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2.2-2.4 3.7M12 17h.01"/>',
+/* UI */
+repeat:'<path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/>',
+alert:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/>',
+info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+cloud:'<path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 0 1 0 9z"/>',
+edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+x:'<path d="M18 6L6 18M6 6l12 12"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',
+copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
+up:'<path d="M12 19V5M5 12l7-7 7 7"/>',
+down:'<path d="M12 5v14M19 12l-7 7-7-7"/>',
+left:'<path d="M15 18l-6-6 6-6"/>',
+right:'<path d="M9 18l6-6-6-6"/>',
+};
+const CAT_ICONS=['phone','bandage','pill','bus','car','fuel','run','cart','tag','baby','laptop','monitor','hammer','plane','signal','tv','wifi','bulb','food','coffee','bowl','home','droplet','zap','gift','game','book','shirt','scissors','paw','health','cap','wallet','cash','bank','trend','handshake','wrench','receipt','refund'];
+/* old emoji-based categories are converted to icon names */
+const EMOJI_MAP={'📱':'phone','🩹':'bandage','💊':'pill','🚌':'bus','🚗':'car','⛽':'fuel','🏃':'run','🛒':'cart','🏷️':'tag','🏷':'tag','👶':'baby','💻':'laptop','🖥️':'monitor','🖥':'monitor','🔨':'hammer','✈️':'plane','✈':'plane','📶':'signal','📺':'tv','📡':'wifi','💡':'bulb','🍔':'food','☕':'coffee','🍜':'bowl','🏠':'home','💧':'droplet','⚡':'zap','🎁':'gift','🎮':'game','📚':'book','👕':'shirt','💇':'scissors','🐱':'paw','🏥':'health','❤️':'health','🎓':'cap','💰':'wallet','💵':'cash','🏦':'bank','📈':'trend','🤝':'handshake','🛠️':'wrench','🛠':'wrench','🧾':'receipt','↩️':'refund','↩':'refund'};
+function ic(name,cls){return `<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]||ICONS.tag}</svg>`}
+function catIc(c){return `<div class="cic" style="background:${c.color}1f;color:${c.color}">${ic(c.icon)}</div>`}
+
 /* ========== DATA ========== */
 const PALETTE=['#e57373','#f0a35e','#e8c547','#8bc77b','#4db6ac','#64b5f6','#7986cb','#ba68c8','#f06292','#a1887f','#90a4ae','#6d8f5e'];
-const EMOJIS=['📱','🩹','💊','🚌','🚗','⛽','🏃','🛒','🏷️','👶','💻','🖥️','🔨','✈️','📶','📺','📡','💡','🍔','☕','🍜','🏠','💧','⚡','🎁','🎮','📚','👕','💇','🐱','🏥','🎓','💰','💵','🏦','📈','🤝','🛠️','🧾','↩️'];
 const HEX=/^#[0-9a-f]{6}$/i, CATID=/^[\w.-]{1,40}$/, TXID=/^[\w.@:-]{1,80}$/, DATE=/^\d{4}-\d\d-\d\d$/;
 const uid6=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const isRefundName=n=>/refund|bayaran balik|pulangan/i.test(n||'');
 function seedCats(){
-  const e=[['beli phone','📱'],['mdex','🩹'],['lain2','🚌'],['banono','🏃'],['bg','🛒'],['refund','↩️'],['sl','👶'],['mkf technology (laptop)','💻'],['sks','🔨'],['Travel','✈️'],['celcom','📶'],['maxis','📺'],['digi','📡'],['monaliza','💡'],['PKU technology (pc depot)','🖥️']];
-  const i=[['Gaji','💰'],['Jualan','💵'],['Komisen','🤝'],['Lain-lain','🏦']];
+  const e=[['beli phone','phone'],['mdex','bandage'],['lain2','bus'],['banono','run'],['bg','cart'],['refund','refund'],['sl','baby'],['mkf technology (laptop)','laptop'],['sks','hammer'],['Travel','plane'],['celcom','signal'],['maxis','tv'],['digi','wifi'],['monaliza','bulb'],['PKU technology (pc depot)','monitor']];
+  const i=[['Gaji','wallet'],['Jualan','cash'],['Komisen','handshake'],['Lain-lain','bank']];
   return [...e.map((x,k)=>({id:'c'+k,name:x[0],icon:x[1],color:PALETTE[k%PALETTE.length],type:'exp',budget:0,refund:isRefundName(x[0])})),
           ...i.map((x,k)=>({id:'i'+k,name:x[0],icon:x[1],color:PALETTE[(k*3+4)%PALETTE.length],type:'inc',budget:0,refund:false}))];
 }
@@ -223,7 +302,7 @@ function cleanS(d){
   const seen=new Set();
   o.cats=(Array.isArray(o.cats)?o.cats:[]).filter(c=>c&&CATID.test(String(c.id))&&!seen.has(String(c.id))&&seen.add(String(c.id))).map(c=>{
     const type=c.type==='inc'?'inc':'exp';
-    return{id:String(c.id),name:String(c.name||'Kategori').slice(0,40),icon:String(c.icon||'🏷️').slice(0,8),color:HEX.test(c.color)?c.color:'#9e9e9e',type,
+    return{id:String(c.id),name:String(c.name||'Kategori').slice(0,40),icon:ICONS[c.icon]?c.icon:(EMOJI_MAP[c.icon]||(type==='exp'&&(c.refund||isRefundName(c.name))?'refund':'tag')),color:HEX.test(c.color)?c.color:'#9e9e9e',type,
       budget:type==='exp'?Math.max(0,+c.budget||0):0,refund:type==='exp'&&(c.refund===undefined?isRefundName(c.name):!!c.refund)}});
   if(!o.cats.length)o.cats=seedCats();
   return o;
@@ -256,7 +335,7 @@ function money(n,sign){const s=S.currency||'RM';const v=Math.abs(n).toLocaleStri
   return (sign&&n>0.004?'+':'')+(n<-0.004?'-':'')+s+v}
 function moneyShort(n){const s=S.currency||'RM';const a=Math.abs(n);return (n<-0.5?'-':'')+s+(a>=1000?(a/1000).toFixed(a>=10000?0:1)+'k':Math.round(a))}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-const NOCAT={id:'',name:'Tanpa kategori',icon:'❔',color:'#9e9e9e',type:'exp',refund:false,budget:0};
+const NOCAT={id:'',name:'Tanpa kategori',icon:'help',color:'#9e9e9e',type:'exp',refund:false,budget:0};
 function cat(id){return S.cats.find(c=>c.id===id)||NOCAT}
 function parseAmt(v){const n=parseFloat(String(v).replace(/[^\d.]/g,''));return n>0?Math.round(n*100)/100:NaN}
 
@@ -295,7 +374,7 @@ async function supaStore(){
   const saveCache=()=>{try{localStorage.setItem(CK,JSON.stringify({S,TX}))}catch(e){}};
   const obCount=()=>{const o=readOB();return Object.keys(o.tx).length+(o.set?1:0)};
   function queue(kind,p){const o=readOB();if(kind==='set')o.set=p;else o.tx[kind==='del'?p:p.id]=kind==='del'?{del:true}:{row:p};saveOB(o);saveCache();syncNote()}
-  function syncNote(){const n=obCount();banner=n?`☁︎ ${n} perubahan disimpan dalam telefon — akan disegerak bila ada internet.`:(/perubahan disimpan|Luar talian/.test(banner)?'':banner);render()}
+  function syncNote(){const n=obCount();banner=n?`${n} perubahan disimpan dalam telefon — akan disegerak bila ada internet.`:(/perubahan disimpan|Luar talian/.test(banner)?'':banner);render()}
   function applyOB(){const o=readOB();for(const [id,op] of Object.entries(o.tx)){if(op.del)delete TX[id];else{const c=cleanTx(op.row);if(c)TX[id]=c}}if(o.set)S=cleanS(o.set)}
   async function flush(){
     if(flushing||!navigator.onLine)return;const o=readOB();const ids=Object.keys(o.tx);if(!ids.length&&!o.set)return;
@@ -308,7 +387,7 @@ async function supaStore(){
       if(o.set)chk(await sb.from('settings').upsert({user_id:uid,data:o.set,updated_at:new Date().toISOString()}));
       const n=readOB();for(const i of ids)if(JSON.stringify(n.tx[i])===JSON.stringify(o.tx[i]))delete n.tx[i];
       if(o.set&&JSON.stringify(n.set)===JSON.stringify(o.set))n.set=null;saveOB(n);
-      if(ids.length||o.set)toast('Disegerak ke awan ✓');
+      if(ids.length||o.set)toast('Disegerak ke awan');
     }catch(e){console.error(e)}finally{flushing=false;syncNote()}
   }
   async function load(){
@@ -363,13 +442,13 @@ async function startStore(){
     writeLocal({...d,movedTo:[...(d.movedTo||[]),session.user.id]});
     if(yes&&my===storeGen){
       if(!st.hadSettings&&d.S){S=cleanS(d.S);saveS()}
-      try{await st.bulk(list);toast(list.length+' transaksi dipindahkan ✓')}catch(e){}
+      try{await st.bulk(list);toast(list.length+' transaksi dipindahkan')}catch(e){}
     }
   }
 }
 const AUTH_ERR={'Invalid login credentials':'Emel atau kata laluan salah.','Email not confirmed':'Emel belum disahkan — semak peti masuk anda.','User already registered':'Emel ini sudah berdaftar. Sila log masuk.'};
 function authMsg(e){const m=e&&e.message||'';return AUTH_ERR[m]||(/rate limit/i.test(m)?'Terlalu banyak cubaan. Tunggu sebentar.':/at least 6/i.test(m)?'Kata laluan mesti sekurang-kurangnya 6 aksara.':/fetch|network/i.test(m)?'Tiada sambungan internet.':'Ralat: '+m)}
-function pwSheet(){openSheet(`<h2>Tetapkan kata laluan baru <button class="iconbtn" data-close aria-label="Tutup">✕</button></h2><input id="nPass" type="password" class="inp" placeholder="Kata laluan baru (min 6)" autocomplete="new-password"><button class="btn mt" data-act="setpw">Simpan kata laluan</button>`)}
+function pwSheet(){openSheet(`<h2>Tetapkan kata laluan baru <button class="iconbtn" data-close aria-label="Tutup">${ic('x')}</button></h2><input id="nPass" type="password" class="inp" placeholder="Kata laluan baru (min 6)" autocomplete="new-password"><button class="btn mt" data-act="setpw">Simpan kata laluan</button>`)}
 
 /* ========== CALC ========== */
 const isFuture=t=>t.date>today();
@@ -411,10 +490,11 @@ const $app=document.getElementById('app');
 function render(){
   carryMemo={};
   document.querySelectorAll('.tab[data-v]').forEach(b=>{const on=b.dataset.v===view;b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
-  const top=banner&&(view==='home'||view==='set'||/Tidak dapat|Gagal/.test(banner))?`<div class="banner">${esc(banner)}</div>`:'';
+  const bi=/perubahan disimpan|Luar talian/.test(banner)?'cloud':/Tidak dapat|Gagal|tidak tersedia/.test(banner)?'alert':'info';
+  const top=banner&&(view==='home'||view==='set'||bi!=='info')?`<div class="banner">${ic(bi)}<span>${esc(banner)}</span></div>`:'';
   $app.innerHTML=top+({home:vHome,tx:vTx,cats:vCats,set:vSet}[view])();
 }
-function monthNav(){return `<div class="monthbar"><button class="iconbtn" data-act="prev" aria-label="Bulan sebelum">‹</button><button class="pill${ym===curYM()?'':' away'}" data-act="now" title="Kembali ke bulan ini">${ymLabel(ym)}</button><button class="iconbtn" data-act="next" aria-label="Bulan seterusnya">›</button></div>`}
+function monthNav(){return `<div class="monthbar"><button class="iconbtn" data-act="prev" aria-label="Bulan sebelum">${ic('left')}</button><button class="pill${ym===curYM()?'':' away'}" data-act="now" title="Kembali ke bulan ini">${ymLabel(ym)}</button><button class="iconbtn" data-act="next" aria-label="Bulan seterusnya">${ic('right')}</button></div>`}
 
 function vHome(){
   const list=monthTx(ym);const {e,gross,r,i}=sums(list);
@@ -431,7 +511,7 @@ function vHome(){
   if(loading)return html+`<div class="board chalk"><div class="row" style="justify-content:center;padding:40px 0">Memuatkan data…</div></div>`;
   html+=`<div class="board chalk">
     <div class="prog" style="--pc:${pc}" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct.toFixed(1)}%"></i></div>
-    <button class="row rowbtn" data-act="editbudget" aria-label="Ubah bajet bulan ini"><span>Bajet ✎</span><span style="color:var(--cgreen)">${money(base)}</span></button>
+    <button class="row rowbtn" data-act="editbudget" aria-label="Ubah bajet bulan ini"><span>Bajet ${ic('edit','sm')}</span><span style="color:var(--cgreen)">${money(base)}</span></button>
     ${S.carry&&Math.abs(carry)>0.004?`<div class="row"><span><small>Baki bulan lepas</small></span><span style="color:${carry<0?'var(--cred)':'var(--cgreen)'};font-size:20px">${money(carry,true)}</span></div>`:''}
     <div class="row"><span>Belanja</span><span style="color:var(--cred)">${money(gross)}</span></div>
     ${r>0?`<div class="row"><span><small>Bayaran balik</small></span><span style="color:var(--cgreen);font-size:20px">-${money(r)}</span></div>`:''}
@@ -442,11 +522,11 @@ function vHome(){
       <div class="mini"><b>${moneyShort(avg)}</b><span>Purata/hari</span></div>
       <div class="mini"><b style="color:var(--camber)">${perDay!==null?moneyShort(perDay):Math.round(pct)+'%'}</b><span>${perDay!==null?'Boleh/hari':'Guna bajet'}</span></div>
     </div>
-    ${forecast!==null&&budget>0&&forecast>budget&&dayNo>=3?`<div class="warnchalk">⚠ Ikut kadar sekarang, anggaran belanja bulan ini ${moneyShort(forecast)} — melebihi bajet.</div>`:''}
+    ${forecast!==null&&budget>0&&forecast>budget&&dayNo>=3?`<div class="warnchalk">${ic('alert')} Ikut kadar sekarang, anggaran belanja bulan ini ${moneyShort(forecast)} — melebihi bajet.</div>`:''}
     <div class="ctas"><button class="cta" data-act="add-exp">+ Belanja</button><button class="cta" data-act="add-inc">+ Pendapatan</button></div>
   </div>`;
   const rec=pendingRecurring(ym);
-  if(rec.length)html+=`<div class="card recur"><h3>🔁 Bil berulang belum direkod <span>${rec.length}</span></h3>${rec.map(t=>{const c=cat(t.cat);return `<div class="catrow"><div class="cic" style="background:${c.color}22">${esc(c.icon)}</div><div class="grow"><div class="cname">${esc(c.name)}</div><div class="sub">${esc(t.note||'Bulan lepas: '+dayLabel(t.date))}</div></div><div class="amt">${money(+t.amt)}</div></div>`}).join('')}<div class="btns mt"><button class="btn ghost" data-act="skiprec">Abaikan</button><button class="btn" data-act="addrec">Rekod semua</button></div></div>`;
+  if(rec.length)html+=`<div class="card recur"><h3><span class="h3i">${ic('repeat')} Bil berulang</span> belum direkod <span>${rec.length}</span></h3>${rec.map(t=>{const c=cat(t.cat);return `<div class="catrow">${catIc(c)}<div class="grow"><div class="cname">${esc(c.name)}</div><div class="sub">${esc(t.note||'Bulan lepas: '+dayLabel(t.date))}</div></div><div class="amt">${money(+t.amt)}</div></div>`}).join('')}<div class="btns mt"><button class="btn ghost" data-act="skiprec">Abaikan</button><button class="btn" data-act="addrec">Rekod semua</button></div></div>`;
   // category breakdown (purchases only; refunds shown separately)
   const byCat={};list.filter(t=>t.type!=='inc'&&!isRefund(t)).forEach(t=>{const k=catKey(t);byCat[k]=(byCat[k]||0)+(+t.amt||0)});
   const rows=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
@@ -456,7 +536,7 @@ function vHome(){
   else{
     html+=`<div class="donutwrap">${donut(rows,gross)}<div class="legend">${rows.slice(0,6).map(([id,v])=>{const c=cat(id);return `<div><i style="background:${c.color}"></i><span>${esc(c.name)}</span><b>${Math.round(v/gross*100)}%</b></div>`}).join('')}${rows.length>6?`<div class="sub">+${rows.length-6} lagi</div>`:''}</div></div><div class="mt">`;
     html+=rows.map(([id,v])=>{const c=cat(id);const b=+c.budget||0;const w=b?Math.min(100,v/b*100):v/rows[0][1]*100;const ov=b&&v>b;const n=list.filter(t=>catKey(t)===id&&t.type!=='inc').length;
-      return `<button class="catrow wide" data-drill="${esc(id||'__none')}"><div class="cic" style="background:${c.color}22">${esc(c.icon)}</div><div class="grow"><div class="cname">${esc(c.name)}</div><div class="sub">${b?(ov?'<b class="neg">Lebih '+money(v-b)+'</b>':'Baki '+money(b-v))+' daripada '+money(b):n+' transaksi'}</div><div class="bar"><i style="width:${w}%;background:${ov?'#d9534f':c.color}"></i></div></div><div class="amt">${money(v)}</div></button>`}).join('');
+      return `<button class="catrow wide" data-drill="${esc(id||'__none')}">${catIc(c)}<div class="grow"><div class="cname">${esc(c.name)}</div><div class="sub">${b?(ov?'<b class="neg">Lebih '+money(v-b)+'</b>':'Baki '+money(b-v))+' daripada '+money(b):n+' transaksi'}</div><div class="bar"><i style="width:${w}%;background:${ov?'#d9534f':c.color}"></i></div></div><div class="amt">${money(v)}</div></button>`}).join('');
     html+=`</div>`;
   }
   html+=`</div>`;
@@ -508,7 +588,7 @@ function txData(){
 }
 function txBody(){
   const {list,q}=txData();const {e,i}=sums(list.filter(t=>!S.hideFuture||!isFuture(t)));
-  let html=`<div class="chips">${[['all','Semua'],['exp','Belanja'],['inc','Pendapatan']].map(([k,l])=>`<button class="chip ${txFilter===k?'on':''}" data-filter="${k}">${l}</button>`).join('')}${txCat?`<button class="chip on" data-clearcat>${esc(cat(txCat).name)} ✕</button>`:''}</div>`;
+  let html=`<div class="chips">${[['all','Semua'],['exp','Belanja'],['inc','Pendapatan']].map(([k,l])=>`<button class="chip ${txFilter===k?'on':''}" data-filter="${k}">${l}</button>`).join('')}${txCat?`<button class="chip on" data-clearcat>${esc(cat(txCat).name)}${ic('x','sm')}</button>`:''}</div>`;
   html+=`<div class="sumline">${q?`Carian semua bulan · ${list.length} hasil`:`${list.length} transaksi`}<span><span class="neg">${money(-e)}</span> · <span class="pos">${money(i,true)}</span></span></div>`;
   if(loading)return html+`<div class="empty">Memuatkan…</div>`;
   if(!list.length)return html+`<div class="empty" style="padding:50px 20px">${q||txFilter!=='all'||txCat?'Tiada transaksi sepadan.':'Tekan butang <b>+</b> untuk tambah transaksi pertama bulan ini.'}</div>`;
@@ -517,12 +597,12 @@ function txBody(){
     if(t.date!==cur){cur=t.date;const dayTot=list.filter(x=>x.date===cur).reduce((s,x)=>s+(x.type==='inc'||isRefund(x)?+x.amt:-x.amt),0);
       html+=`<div class="dayhead"><span>${dayLabel(cur)}</span><span>${money(dayTot,true)}</span></div>`}
     const c=cat(t.cat),plus=t.type==='inc'||isRefund(t),fut=isFuture(t);
-    html+=`<button class="txitem${fut?' future':''}" data-edit="${esc(t.id)}"><div class="cic" style="background:${c.color}22">${esc(c.icon)}</div><div class="grow"><div class="cname">${esc(c.name)}${t.rep?' <span class="tag">🔁</span>':''}${fut?' <span class="tag">Akan datang</span>':''}</div>${t.note?`<div class="sub ell">${esc(t.note)}</div>`:''}</div><div class="amt ${plus?'pos':''}">${plus?'+':''}${money(+t.amt)}</div></button>`;
+    html+=`<button class="txitem${fut?' future':''}" data-edit="${esc(t.id)}">${catIc(c)}<div class="grow"><div class="cname">${esc(c.name)}${t.rep?' <span class="tag">'+ic('repeat','sm')+'</span>':''}${fut?' <span class="tag">Akan datang</span>':''}</div>${t.note?`<div class="sub ell">${esc(t.note)}</div>`:''}</div><div class="amt ${plus?'pos':''}">${plus?'+':''}${money(+t.amt)}</div></button>`;
   }
   return html;
 }
 function vTx(){
-  return `<div class="top"><button class="act" data-act="csv">⧉ CSV</button>${monthNav()}<span style="width:70px"></span></div>
+  return `<div class="top"><button class="act" data-act="csv">${ic('copy','sm')} CSV</button>${monthNav()}<span style="width:70px"></span></div>
   <div class="search"><input id="q" type="search" placeholder="Cari nota, kategori, jumlah (semua bulan)…" value="${esc(txQuery)}" autocomplete="off"></div>
   <div id="txbody">${txBody()}</div>`;
 }
@@ -538,7 +618,7 @@ function vCats(){
   if(!list.length)html+=`<div class="empty" style="margin:12px 0">Tiada kategori. Tekan + untuk tambah.</div>`;
   list.forEach((c,k)=>{const spent=mt.filter(t=>t.cat===c.id).reduce((s,t)=>s+(+t.amt||0),0);const b=+c.budget||0;
     const lbl=c.type==='inc'?'Diterima':c.refund?'Dipulangkan':'Dibelanja';
-    html+=`<div class="listbtn"${sortMode?'':` role="button" tabindex="0" data-cat="${esc(c.id)}"`}><div class="cic" style="background:${c.color}22">${esc(c.icon)}</div><div class="grow"><div class="cname">${esc(c.name)}${c.refund?' <span class="tag">tolak belanja</span>':''}</div><div class="sub">${lbl} ${ymLabel(ym)}: ${money(spent)}${b?' / '+money(b):''}</div>${b?`<div class="bar"><i style="width:${Math.min(100,spent/b*100)}%;background:${spent>b?'#d9534f':c.color}"></i></div>`:''}</div>${sortMode?`<button class="iconbtn" data-up="${esc(c.id)}" aria-label="Naik" ${k===0?'disabled style="opacity:.3"':''}>↑</button><button class="iconbtn" data-down="${esc(c.id)}" aria-label="Turun" ${k===list.length-1?'disabled style="opacity:.3"':''}>↓</button>`:`<span class="chev">›</span>`}</div>`});
+    html+=`<div class="listbtn"${sortMode?'':` role="button" tabindex="0" data-cat="${esc(c.id)}"`}>${catIc(c)}<div class="grow"><div class="cname">${esc(c.name)}${c.refund?' <span class="tag">tolak belanja</span>':''}</div><div class="sub">${lbl} ${ymLabel(ym)}: ${money(spent)}${b?' / '+money(b):''}</div>${b?`<div class="bar"><i style="width:${Math.min(100,spent/b*100)}%;background:${spent>b?'#d9534f':c.color}"></i></div>`:''}</div>${sortMode?`<button class="iconbtn" data-up="${esc(c.id)}" aria-label="Naik" ${k===0?'disabled style="opacity:.3"':''}>${ic('up')}</button><button class="iconbtn" data-down="${esc(c.id)}" aria-label="Turun" ${k===list.length-1?'disabled style="opacity:.3"':''}>${ic('down')}</button>`:`<span class="chev">${ic('right')}</span>`}</div>`});
   return html+`</div><p class="note" style="text-align:center">Tetapkan bajet setiap kategori untuk dapat amaran bila terlebih.</p>`;
 }
 
@@ -563,7 +643,7 @@ function vSet(){
 }
 function vAccount(){
   if(!sb)return `<div class="card"><h3>Akaun awan</h3><p class="note" style="margin:0">Sambungan ke Supabase tidak dapat dimuatkan. Semak internet dan buka semula app.</p></div>`;
-  if(session)return `<div class="card"><h3>Akaun awan <span class="pos">● Disambung</span></h3>
+  if(session)return `<div class="card"><h3>Akaun awan <span class="pos"><i class="dot"></i>Disambung</span></h3>
     <div class="set"><div><label>Log masuk sebagai</label><div class="sub">${esc(session.user.email)}</div></div></div>
     <p class="note">Data disegerakkan ke Supabase — buka app di peranti lain dengan akaun yang sama.</p>
     <div class="btns"><button class="btn ghost" data-act="reload">Muat semula</button><button class="btn ghost" data-act="logout">Log keluar</button></div></div>`;
@@ -592,10 +672,10 @@ function txSheet(t,type){
 function drawTx(editing){
   const cats=S.cats.filter(c=>c.type===draft.type);
   const orphan=editing&&draft.cat&&!S.cats.some(c=>c.id===draft.cat)||(editing&&!draft.cat);
-  openSheet(`<h2>${editing?'Ubah':'Tambah'} transaksi <button class="iconbtn" data-close aria-label="Tutup">✕</button></h2>
+  openSheet(`<h2>${editing?'Ubah':'Tambah'} transaksi <button class="iconbtn" data-close aria-label="Tutup">${ic('x')}</button></h2>
   <div class="seg"><button class="${draft.type==='exp'?'on':''}" data-ttype="exp">Belanja</button><button class="${draft.type==='inc'?'on':''}" data-ttype="inc">Pendapatan</button></div>
   <div class="amtin"><span>${esc(S.currency)}</span><input id="tAmt" inputmode="decimal" placeholder="0.00" value="${esc(draft.amt)}" aria-label="Jumlah" enterkeyhint="done"></div>
-  <div class="field"><label>Kategori${orphan?' <span class="neg">— kategori asal telah dipadam, pilih baru</span>':''}</label><div class="catgrid">${cats.map(c=>`<button class="catpick ${draft.cat===c.id?'on':''}" data-pick="${esc(c.id)}"><div class="cic" style="background:${c.color}22">${esc(c.icon)}</div><span>${esc(c.name)}</span></button>`).join('')}<button class="catpick" data-act="newcat-from-tx"><div class="cic" style="background:var(--line)">＋</div><span>Baru</span></button></div></div>
+  <div class="field"><label>Kategori${orphan?' <span class="neg">— kategori asal telah dipadam, pilih baru</span>':''}</label><div class="catgrid">${cats.map(c=>`<button class="catpick ${draft.cat===c.id?'on':''}" data-pick="${esc(c.id)}">${catIc(c)}<span>${esc(c.name)}</span></button>`).join('')}<button class="catpick" data-act="newcat-from-tx"><div class="cic" style="background:var(--line);color:var(--ink)">${ic('plus')}</div><span>Baru</span></button></div></div>
   <div class="btns" style="margin-bottom:12px"><div class="field" style="margin:0"><label for="tDate">Tarikh</label><input type="date" id="tDate" class="inp" value="${esc(draft.date)}"></div><div class="field" style="margin:0"><label for="tNote">Nota</label><input id="tNote" class="inp" placeholder="Pilihan" maxlength="200" value="${esc(draft.note)}"></div></div>
   <div class="set" style="border:0;padding-top:0"><div><label>Ulang setiap bulan</label><div class="sub">Untuk bil tetap — app ingatkan bulan depan</div></div><button class="sw ${draft.rep?'on':''}" data-trep role="switch" aria-checked="${!!draft.rep}" aria-label="Ulang setiap bulan"></button></div>
   <button class="btn" data-act="savetx">Simpan</button>
@@ -608,14 +688,14 @@ function readTxForm(){const a=document.getElementById('tAmt'),d=document.getElem
 let cdraft=null;
 function catSheet(c,fromTx){
   const type=fromTx?draft.type:catType;
-  cdraft=c?{...c}:{id:uid6(),name:'',icon:type==='inc'?'💰':'🛒',color:PALETTE[S.cats.length%PALETTE.length],type,budget:0,refund:false,_new:true,_fromTx:!!fromTx};
+  cdraft=c?{...c}:{id:uid6(),name:'',icon:type==='inc'?'wallet':'cart',color:PALETTE[S.cats.length%PALETTE.length],type,budget:0,refund:false,_new:true,_fromTx:!!fromTx};
   drawCat();
 }
 function drawCat(){
   const used=Object.values(TX).filter(t=>t.cat===cdraft.id).length;
-  openSheet(`<h2>${cdraft._new?'Kategori baru':'Ubah kategori'} <button class="iconbtn" data-close aria-label="Tutup">✕</button></h2>
-  <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px"><div class="cic" style="background:${cdraft.color}33;width:54px;height:54px;font-size:28px">${esc(cdraft.icon)}</div><input id="cName" class="inp" placeholder="Nama kategori" maxlength="40" value="${esc(cdraft.name)}"></div>
-  <div class="field"><label>Ikon</label><div class="emojis">${EMOJIS.map(e=>`<button class="${cdraft.icon===e?'on':''}" data-emoji="${e}">${e}</button>`).join('')}</div></div>
+  openSheet(`<h2>${cdraft._new?'Kategori baru':'Ubah kategori'} <button class="iconbtn" data-close aria-label="Tutup">${ic('x')}</button></h2>
+  <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px"><div class="cic big" style="background:${cdraft.color}1f;color:${cdraft.color}">${ic(cdraft.icon)}</div><input id="cName" class="inp" placeholder="Nama kategori" maxlength="40" value="${esc(cdraft.name)}"></div>
+  <div class="field"><label>Ikon</label><div class="emojis">${CAT_ICONS.map(n=>`<button class="${cdraft.icon===n?'on':''}" data-emoji="${n}" aria-label="${n}" style="color:${cdraft.color}">${ic(n)}</button>`).join('')}</div></div>
   <div class="field"><label>Warna</label><div class="colors">${PALETTE.map(p=>`<button class="${cdraft.color===p?'on':''}" style="background:${p}" data-color="${p}" aria-label="Warna ${p}"></button>`).join('')}</div></div>
   ${cdraft.type==='exp'?`<div class="set" style="border:0"><div><label>Bayaran balik (refund)</label><div class="sub">Jumlah kategori ini <b>ditolak</b> daripada belanja, bukan ditambah</div></div><button class="sw ${cdraft.refund?'on':''}" data-crefund role="switch" aria-checked="${!!cdraft.refund}" aria-label="Bayaran balik"></button></div>
   ${cdraft.refund?'':`<div class="field"><label for="cBudget">Bajet bulanan kategori (0 = tiada)</label><input id="cBudget" class="inp" inputmode="decimal" value="${+cdraft.budget||0}"></div>`}`:''}
@@ -634,7 +714,7 @@ function ask(msg,yes='Ya'){return new Promise(r=>{const d=document.getElementByI
   const done=v=>{d.classList.remove('show');dlgResolve=null;r(v)};
   document.getElementById('dlgYes').onclick=()=>done(true);document.getElementById('dlgNo').onclick=()=>done(false);setTimeout(()=>document.getElementById('dlgNo').focus(),50)})}
 async function copy(text,msg){try{await navigator.clipboard.writeText(text);toast(msg)}catch(e){
-  openSheet(`<h2>Salin teks <button class="iconbtn" data-close aria-label="Tutup">✕</button></h2><p class="note">Salinan automatik disekat. Tekan lama untuk pilih semua & salin.</p><textarea class="inp" rows="10" readonly>${esc(text)}</textarea>`)}}
+  openSheet(`<h2>Salin teks <button class="iconbtn" data-close aria-label="Tutup">${ic('x')}</button></h2><p class="note">Salinan automatik disekat. Tekan lama untuk pilih semua & salin.</p><textarea class="inp" rows="10" readonly>${esc(text)}</textarea>`)}}
 function applyTheme(){document.body.classList.toggle('dark',S.theme==='dark');const m=document.querySelector('meta[name=theme-color]');if(m)m.content=S.theme==='dark'?'#1a1816':'#ebe2d5'}
 function saveS(){applyTheme();render();store&&store.saveSettings()}
 function go(v){view=v;sortMode=false;render();window.scrollTo(0,0)}
@@ -682,13 +762,13 @@ document.addEventListener('click',async ev=>{
       if(!draft.cat||!S.cats.some(c=>c.id===draft.cat&&c.type===draft.type))return toast('Pilih kategori');
       if(!DATE.test(draft.date))return toast('Tarikh tidak sah');
       const t=cleanTx({...draft,amt,note:draft.note.trim()});
-      closeSheet();if(!t.date.startsWith(ym)){ym=t.date.slice(0,7);toast('Disimpan ✓ — dipindah ke '+ymLabel(ym))}else toast('Disimpan ✓');
+      closeSheet();if(!t.date.startsWith(ym)){ym=t.date.slice(0,7);toast('Disimpan — dipindah ke '+ymLabel(ym))}else toast('Disimpan');
       store.saveTx(t).catch(()=>{});return}
     case 'duptx':{readTxForm();const amt=parseAmt(draft.amt);if(!(amt>0))return toast('Masukkan jumlah yang sah');
       const t=cleanTx({...draft,amt,id:uid6(),rid:'',date:today(),ts:Date.now()});closeSheet();ym=curYM();store.saveTx(t).catch(()=>{});return toast('Disalin ke hari ini')}
     case 'deltx':{const old=TX[draft.id];closeSheet();if(!old)return;
       store.delTx(old.id).then(()=>toast('Transaksi dipadam','Batal',()=>store.saveTx(old).catch(()=>{}))).catch(()=>{});return}
-    case 'addrec':{const list=pendingRecurring(ym).map(t=>makeRecurring(t,ym));try{await store.bulk(list);toast(list.length+' bil direkod ✓')}catch(e){}return}
+    case 'addrec':{const list=pendingRecurring(ym).map(t=>makeRecurring(t,ym));try{await store.bulk(list);toast(list.length+' bil direkod')}catch(e){}return}
     case 'skiprec':{// mark last month's items as no longer repeating for this cycle by recording nothing: just turn off rep on them
       if(!await ask('Hentikan peringatan bil berulang ini? (Bil bulan lepas tidak lagi ditanda berulang.)','Hentikan'))return;
       for(const t of pendingRecurring(ym)){try{await store.saveTx({...t,rep:false})}catch(e){break}}return}
@@ -703,7 +783,7 @@ document.addEventListener('click',async ev=>{
       if(S.cats.filter(c=>c.type===cdraft.type).length<=1)return toast('Perlu sekurang-kurangnya satu kategori');
       if(!await ask(`Padam kategori "${cdraft.name}"?${n?` ${n} transaksi akan jadi "Tanpa kategori" (jumlahnya masih dikira).`:''}`,'Padam'))return;
       S.cats=S.cats.filter(c=>c.id!==cdraft.id);closeSheet();return saveS()}
-    case 'editbudget':return openSheet(`<h2>Bajet ${ymLabel(ym)} <button class="iconbtn" data-close aria-label="Tutup">✕</button></h2>
+    case 'editbudget':return openSheet(`<h2>Bajet ${ymLabel(ym)} <button class="iconbtn" data-close aria-label="Tutup">${ic('x')}</button></h2>
       <div class="amtin"><span>${esc(S.currency)}</span><input id="bAmt" inputmode="decimal" value="${budgetFor(ym)}" aria-label="Bajet"></div>
       <div class="btns"><button class="btn ghost" data-act="savebudget" data-scope="one">Bulan ini sahaja</button><button class="btn" data-act="savebudget" data-scope="on">Bulan ini & seterusnya</button></div>
       <p class="note">Bulan-bulan lepas tidak terjejas.</p>`);
@@ -714,13 +794,13 @@ document.addEventListener('click',async ev=>{
       const csv=['Tarikh,Jenis,Kategori,Jumlah,Nota',...rows.map(t=>[t.date,t.type==='inc'?'Pendapatan':isRefund(t)?'Bayaran balik':'Belanja',qq(cat(t.cat).name),t.amt.toFixed(2),qq(t.note||'')].join(','))].join('\n');
       return copy(csv,`CSV ${q?'hasil carian':ymLabel(ym)} disalin (${rows.length} baris)`)}
     case 'backup':return copy(JSON.stringify({app:'belanja-aku',v:2,at:new Date().toISOString(),settings:S,tx:Object.values(TX)}),'Sandaran disalin — tampal & simpan di tempat selamat');
-    case 'restore':return openSheet(`<h2>Pulihkan sandaran <button class="iconbtn" data-close aria-label="Tutup">✕</button></h2><p class="note">Tampal teks sandaran JSON di bawah. Tetapan & kategori akan diganti; transaksi dengan ID sama ditimpa, yang lain kekal.</p><textarea id="rTxt" class="inp" rows="8" placeholder='{"app":"belanja-aku",...}'></textarea><button class="btn mt" data-act="dorestore">Pulihkan</button>`);
+    case 'restore':return openSheet(`<h2>Pulihkan sandaran <button class="iconbtn" data-close aria-label="Tutup">${ic('x')}</button></h2><p class="note">Tampal teks sandaran JSON di bawah. Tetapan & kategori akan diganti; transaksi dengan ID sama ditimpa, yang lain kekal.</p><textarea id="rTxt" class="inp" rows="8" placeholder='{"app":"belanja-aku",...}'></textarea><button class="btn mt" data-act="dorestore">Pulihkan</button>`);
     case 'dorestore':{let j;try{j=JSON.parse(document.getElementById('rTxt').value)}catch(e){return toast('JSON tidak sah')}
       if(!j||j.app!=='belanja-aku'||!Array.isArray(j.tx))return toast('Bukan fail sandaran Belanja Aku');
       const list=j.tx.map(cleanTx).filter(Boolean);
       if(!await ask(`Pulihkan ${list.length} transaksi${j.settings?' dan ganti tetapan/kategori':''}?`,'Pulihkan'))return;
       closeSheet();if(j.settings&&typeof j.settings==='object'){S=cleanS(j.settings);saveS()}
-      try{await store.bulk(list);toast(list.length+' transaksi dipulihkan ✓')}catch(e){}return}
+      try{await store.bulk(list);toast(list.length+' transaksi dipulihkan')}catch(e){}return}
     case 'wipe':{const n=Object.keys(TX).length;if(!n)return toast('Tiada transaksi untuk dipadam');
       if(!await ask(`Padam SEMUA ${n} transaksi? Tindakan ini tidak boleh dibatalkan. Salin sandaran dulu jika perlu.`,'Padam semua'))return;
       try{await store.wipe();toast('Semua transaksi dipadam')}catch(e){}return}
