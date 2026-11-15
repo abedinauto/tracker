@@ -155,6 +155,8 @@ body.dark .fab{color:#1a1816}
 .dlg .box{background:var(--card);border-radius:20px;padding:20px;max-width:340px;width:100%}
 .dlg p{margin:0 0 16px;line-height:1.45}
 .mt{margin-top:10px}
+.rowbtn{width:100%;color:inherit;font:inherit;padding:0;text-align:left}
+.rowbtn:active{opacity:.7}
 .pill.away{background:var(--brown);color:#fff8f0}
 body.dark .pill.away{color:#1a1816}
 .warnchalk{margin-top:12px;font-size:17px;color:var(--camber);border:1px dashed rgba(255,212,121,.5);border-radius:12px;padding:8px 10px;line-height:1.25}
@@ -216,6 +218,7 @@ function cleanS(d){
   const o={...JSON.parse(JSON.stringify(DEF)),...(d&&typeof d==='object'?d:{})};
   o.budget=Math.min(1e10,Math.max(0,Math.round((+o.budget||0)*100)/100));
   o.currency=String(o.currency||'RM').trim().slice(0,4)||'RM';
+  const bm={};if(o.budgets&&typeof o.budgets==='object')Object.entries(o.budgets).slice(-600).forEach(([k,v])=>{if(/^\d{4}-\d\d$/.test(k)&&+v>=0)bm[k]=Math.min(1e10,Math.round(+v*100)/100)});o.budgets=bm;
   o.carry=!!o.carry;o.hideFuture=!!o.hideFuture;o.theme=o.theme==='dark'?'dark':'paper';
   const seen=new Set();
   o.cats=(Array.isArray(o.cats)?o.cats:[]).filter(c=>c&&CATID.test(String(c.id))&&!seen.has(String(c.id))&&seen.add(String(c.id))).map(c=>{
@@ -340,6 +343,12 @@ function isRefund(t){return t.type!=='inc'&&!!cat(t.cat).refund}
 /* e = net spending (purchases minus refunds), gross = purchases only, r = refunds, i = income */
 function sums(list){let g=0,r=0,i=0;for(const t of list){const a=+t.amt||0;if(t.type==='inc')i+=a;else if(isRefund(t))r+=a;else g+=a}return{e:g-r,gross:g,r,i}}
 const catKey=t=>S.cats.some(c=>c.id===t.cat)?t.cat:'';
+/* budget history: S.budgets["YYYY-MM"] = amount from that month onward; S.budget = base for months before any entry */
+function budgetFor(y){let v=+S.budget||0,best='';for(const k in S.budgets||{})if(k<=y&&k>best){best=k;v=S.budgets[k]}return v}
+function setBudget(y,v,onward){S.budgets=S.budgets||{};const next=shiftYM(y,1),nextVal=budgetFor(next);
+  S.budgets[y]=v;
+  if(onward){for(const k of Object.keys(S.budgets))if(k>y)delete S.budgets[k]}
+  else if(!(next in S.budgets)&&nextVal!==v)S.budgets[next]=nextVal}
 let carryMemo={};
 function carryIn(y){
   if(!S.carry)return 0;
@@ -347,7 +356,7 @@ function carryIn(y){
   const all=countable();if(!all.length)return 0;
   const first=all.reduce((m,t)=>t.date<m?t.date:m,'9999').slice(0,7);
   if(y<=first){carryMemo[y]=0;return 0}
-  const p=shiftYM(y,-1);const v=(+S.budget||0)+carryIn(p)-sums(monthTx(p)).e;
+  const p=shiftYM(y,-1);const v=budgetFor(p)+carryIn(p)-sums(monthTx(p)).e;
   carryMemo[y]=v;return v;
 }
 /* recurring: every tx flagged "rep" in the previous month should have a copy this month */
@@ -373,7 +382,7 @@ function monthNav(){return `<div class="monthbar"><button class="iconbtn" data-a
 
 function vHome(){
   const list=monthTx(ym);const {e,gross,r,i}=sums(list);
-  const carry=carryIn(ym);const budget=(+S.budget||0)+carry;const rem=budget-e;
+  const carry=carryIn(ym);const base=budgetFor(ym);const budget=base+carry;const rem=budget-e;
   const pct=budget>0?Math.max(0,Math.min(100,e/budget*100)):(e>0?100:0);
   const pc=pct<70?'var(--cgreen)':pct<95?'var(--camber)':'var(--cred)';
   const cur=curYM(),isNow=ym===cur,dim=daysIn(ym);
@@ -386,7 +395,7 @@ function vHome(){
   if(loading)return html+`<div class="board chalk"><div class="row" style="justify-content:center;padding:40px 0">Memuatkan data…</div></div>`;
   html+=`<div class="board chalk">
     <div class="prog" style="--pc:${pc}" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct.toFixed(1)}%"></i></div>
-    <div class="row"><span>Bajet</span><span style="color:var(--cgreen)">${money(+S.budget||0)}</span></div>
+    <button class="row rowbtn" data-act="editbudget" aria-label="Ubah bajet bulan ini"><span>Bajet ✎</span><span style="color:var(--cgreen)">${money(base)}</span></button>
     ${S.carry&&Math.abs(carry)>0.004?`<div class="row"><span><small>Baki bulan lepas</small></span><span style="color:${carry<0?'var(--cred)':'var(--cgreen)'};font-size:20px">${money(carry,true)}</span></div>`:''}
     <div class="row"><span>Belanja</span><span style="color:var(--cred)">${money(gross)}</span></div>
     ${r>0?`<div class="row"><span><small>Bayaran balik</small></span><span style="color:var(--cgreen);font-size:20px">-${money(r)}</span></div>`:''}
@@ -438,10 +447,10 @@ function dailyChart(list,dim){
 }
 function trendChart(){
   const ms=[];for(let k=5;k>=0;k--)ms.push(shiftYM(ym,-k));
-  const data=ms.map(m=>sums(monthTx(m)));const max=Math.max(1,...data.map(x=>Math.max(x.e,x.i)),+S.budget||0);
+  const data=ms.map(m=>sums(monthTx(m)));const bs=ms.map(budgetFor);const max=Math.max(1,...data.map(x=>Math.max(x.e,x.i)),...bs);
   const W=330,H=120,gw=W/6;let s=`<svg viewBox="0 0 ${W} ${H+20}" role="img" aria-label="Trend 6 bulan">`;
-  const by=H-(+S.budget||0)/max*(H-8);
-  if(+S.budget)s+=`<line x1="0" x2="${W}" y1="${by}" y2="${by}" stroke="var(--muted)" stroke-dasharray="4 4" opacity=".6"/><text x="2" y="${by-3}" font-size="9" fill="var(--muted)">bajet</text>`;
+  bs.forEach((b,k)=>{if(!b)return;const by=H-b/max*(H-8);s+=`<line x1="${k*gw+4}" x2="${(k+1)*gw-4}" y1="${by}" y2="${by}" stroke="var(--muted)" stroke-dasharray="4 3" opacity=".75"/>`});
+  if(bs[0])s+=`<text x="2" y="${H-bs[0]/max*(H-8)-3}" font-size="9" fill="var(--muted)">bajet</text>`;
   data.forEach((x,k)=>{const he=Math.max(0,x.e)/max*(H-8),hi=x.i/max*(H-8);const cx=k*gw+gw/2;
     s+=`<g data-month="${ms[k]}" style="cursor:pointer"><rect x="${k*gw}" y="0" width="${gw}" height="${H+18}" fill="transparent"/><rect x="${cx-15}" y="${H-he}" width="14" height="${he}" rx="3" fill="#c97b63"/><rect x="${cx+1}" y="${H-hi}" width="14" height="${hi}" rx="3" fill="#7cbf8a"/>`;
     const [,b]=ms[k].split('-').map(Number);
@@ -488,7 +497,7 @@ function vCats(){
   let html=`<div class="top"><button class="act" data-act="sort">${sortMode?'Siap':'Susun'}</button><h1>Kategori</h1><button class="act" data-act="newcat" style="font-size:26px;padding:2px 10px" aria-label="Kategori baru">+</button></div>`;
   html+=`<div class="seg"><button class="${catType==='exp'?'on':''}" data-ctype="exp">Perbelanjaan</button><button class="${catType==='inc'?'on':''}" data-ctype="inc">Pendapatan</button></div>`;
   if(catType==='exp'){const tb=S.cats.filter(c=>c.type==='exp'&&!c.refund).reduce((s,c)=>s+(+c.budget||0),0);
-    if(tb>0)html+=`<div class="${tb>(+S.budget||0)?'banner warn':'banner'}">Jumlah bajet kategori ${money(tb)} ${tb>(+S.budget||0)?'<b>melebihi</b>':'daripada'} bajet bulanan ${money(+S.budget||0)}.</div>`}
+    const mb=budgetFor(ym);if(tb>0)html+=`<div class="${tb>mb?'banner warn':'banner'}">Jumlah bajet kategori ${money(tb)} ${tb>mb?'<b>melebihi</b>':'daripada'} bajet ${ymLabel(ym)} ${money(mb)}.</div>`}
   html+=`<div class="card" style="padding:4px 16px">`;
   if(!list.length)html+=`<div class="empty" style="margin:12px 0">Tiada kategori. Tekan + untuk tambah.</div>`;
   list.forEach((c,k)=>{const spent=mt.filter(t=>t.cat===c.id).reduce((s,t)=>s+(+t.amt||0),0);const b=+c.budget||0;
@@ -501,7 +510,7 @@ function vSet(){
   return `<div class="top"><h1>Tetapan</h1></div>
   ${vAccount()}
   <div class="card"><h3>Perbelanjaan</h3>
-    <div class="set"><label for="sBudget">Bajet bulanan</label><input id="sBudget" class="inp small-inp" inputmode="decimal" value="${+S.budget||0}"></div>
+    <div class="set"><div><label for="sBudget">Bajet bulanan</label><div class="sub">Berkuat kuasa mulai ${ymLabel(curYM())} — bulan lepas kekal</div></div><input id="sBudget" class="inp small-inp" inputmode="decimal" value="${budgetFor(curYM())}"></div>
     <div class="set"><div><label>Bawa baki ke bulan depan</label><div class="sub">Baki/lebihan bulan lepas ditambah ke bajet</div></div><button class="sw ${S.carry?'on':''}" data-tog="carry" role="switch" aria-checked="${S.carry}" aria-label="Bawa baki"></button></div>
     <div class="set"><div><label>Abaikan transaksi akan datang</label><div class="sub">Tarikh selepas hari ini tidak dikira dalam jumlah (masih dipapar dalam senarai)</div></div><button class="sw ${S.hideFuture?'on':''}" data-tog="hideFuture" role="switch" aria-checked="${S.hideFuture}" aria-label="Abaikan akan datang"></button></div>
   </div>
@@ -658,6 +667,12 @@ document.addEventListener('click',async ev=>{
       if(S.cats.filter(c=>c.type===cdraft.type).length<=1)return toast('Perlu sekurang-kurangnya satu kategori');
       if(!await ask(`Padam kategori "${cdraft.name}"?${n?` ${n} transaksi akan jadi "Tanpa kategori" (jumlahnya masih dikira).`:''}`,'Padam'))return;
       S.cats=S.cats.filter(c=>c.id!==cdraft.id);closeSheet();return saveS()}
+    case 'editbudget':return openSheet(`<h2>Bajet ${ymLabel(ym)} <button class="iconbtn" data-close aria-label="Tutup">✕</button></h2>
+      <div class="amtin"><span>${esc(S.currency)}</span><input id="bAmt" inputmode="decimal" value="${budgetFor(ym)}" aria-label="Bajet"></div>
+      <div class="btns"><button class="btn ghost" data-act="savebudget" data-scope="one">Bulan ini sahaja</button><button class="btn" data-act="savebudget" data-scope="on">Bulan ini & seterusnya</button></div>
+      <p class="note">Bulan-bulan lepas tidak terjejas.</p>`);
+    case 'savebudget':{const v=parseFloat(String(document.getElementById('bAmt').value).replace(/[^\d.]/g,''));if(!(v>=0))return toast('Bajet tidak sah');
+      setBudget(ym,Math.min(1e10,Math.round(v*100)/100),d.scope==='on');closeSheet();saveS();return toast('Bajet '+ymLabel(ym)+' dikemas kini')}
     case 'sort':sortMode=!sortMode;return render();
     case 'csv':{const {list,q}=txData();const rows=[...list].sort((a,b)=>a.date.localeCompare(b.date));const qq=s=>'"'+String(s).replace(/"/g,'""')+'"';
       const csv=['Tarikh,Jenis,Kategori,Jumlah,Nota',...rows.map(t=>[t.date,t.type==='inc'?'Pendapatan':isRefund(t)?'Bayaran balik':'Belanja',qq(cat(t.cat).name),t.amt.toFixed(2),qq(t.note||'')].join(','))].join('\n');
@@ -693,8 +708,8 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='sBudget'){const v=parseFloat(e.target.value.replace(/[^\d.]/g,''));
-    if(!(v>=0)){e.target.value=+S.budget||0;return toast('Bajet tidak sah')}
-    const nv=Math.round(v*100)/100;if(nv!==S.budget){S.budget=nv;saveS();toast('Bajet dikemas kini')}}
+    if(!(v>=0)){e.target.value=budgetFor(curYM());return toast('Bajet tidak sah')}
+    const nv=Math.min(1e10,Math.round(v*100)/100);if(nv!==budgetFor(curYM())){setBudget(curYM(),nv,true);saveS();toast('Bajet dikemas kini mulai '+ymLabel(curYM()))}}
   if(e.target.id==='sCur'){const v=e.target.value.trim().slice(0,4)||'RM';if(v!==S.currency){S.currency=v;saveS()}}
 });
 
