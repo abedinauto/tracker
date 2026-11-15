@@ -282,37 +282,73 @@ function localStore(){
   };
 }
 function txRow(t,uid){return{user_id:uid,id:t.id,type:t.type,amt:t.amt,cat:t.cat||'',date:t.date,note:t.note||'',ts:t.ts||0,rep:!!t.rep,rid:t.rid||''}}
+const isNet=e=>!navigator.onLine||/fetch|network|load failed|timeout/i.test((e&&(e.message||e.details))||String(e));
 async function supaStore(){
   const uid=session.user.id;
+  const OBK='belanja-outbox-'+uid, CK='belanja-cache-'+uid;
   loading=true;banner='';render();
   const chk=r=>{if(r.error)throw r.error;return r.data};
-  let pending=0;
+  let pending=0,flushing=false;
+  /* outbox: changes made while offline, kept on this device until they reach Supabase */
+  const readOB=()=>{try{const o=JSON.parse(localStorage.getItem(OBK));return o&&o.tx?o:{tx:{},set:null}}catch(e){return{tx:{},set:null}}};
+  const saveOB=o=>{try{if(!Object.keys(o.tx).length&&!o.set)localStorage.removeItem(OBK);else localStorage.setItem(OBK,JSON.stringify(o))}catch(e){}};
+  const saveCache=()=>{try{localStorage.setItem(CK,JSON.stringify({S,TX}))}catch(e){}};
+  const obCount=()=>{const o=readOB();return Object.keys(o.tx).length+(o.set?1:0)};
+  function queue(kind,p){const o=readOB();if(kind==='set')o.set=p;else o.tx[kind==='del'?p:p.id]=kind==='del'?{del:true}:{row:p};saveOB(o);saveCache();syncNote()}
+  function syncNote(){const n=obCount();banner=n?`☁︎ ${n} perubahan disimpan dalam telefon — akan disegerak bila ada internet.`:(/perubahan disimpan|Luar talian/.test(banner)?'':banner);render()}
+  function applyOB(){const o=readOB();for(const [id,op] of Object.entries(o.tx)){if(op.del)delete TX[id];else{const c=cleanTx(op.row);if(c)TX[id]=c}}if(o.set)S=cleanS(o.set)}
+  async function flush(){
+    if(flushing||!navigator.onLine)return;const o=readOB();const ids=Object.keys(o.tx);if(!ids.length&&!o.set)return;
+    flushing=true;
+    try{
+      const ups=ids.filter(i=>!o.tx[i].del).map(i=>cleanTx(o.tx[i].row)).filter(Boolean).map(t=>txRow(t,uid));
+      const dels=ids.filter(i=>o.tx[i].del);
+      for(let k=0;k<ups.length;k+=500)chk(await sb.from('transactions').upsert(ups.slice(k,k+500),{onConflict:'user_id,id'}));
+      for(let k=0;k<dels.length;k+=200)chk(await sb.from('transactions').delete().eq('user_id',uid).in('id',dels.slice(k,k+200)));
+      if(o.set)chk(await sb.from('settings').upsert({user_id:uid,data:o.set,updated_at:new Date().toISOString()}));
+      const n=readOB();for(const i of ids)if(JSON.stringify(n.tx[i])===JSON.stringify(o.tx[i]))delete n.tx[i];
+      if(o.set&&JSON.stringify(n.set)===JSON.stringify(o.set))n.set=null;saveOB(n);
+      if(ids.length||o.set)toast('Disegerak ke awan ✓');
+    }catch(e){console.error(e)}finally{flushing=false;syncNote()}
+  }
   async function load(){
     const st=chk(await sb.from('settings').select('data').eq('user_id',uid).maybeSingle());
     const n={};let from=0;const P=1000;
     for(;;){const rows=chk(await sb.from('transactions').select('id,type,amt,cat,date,note,ts,rep,rid').eq('user_id',uid).order('date').order('id').range(from,from+P-1));
       rows.forEach(r=>{const c=cleanTx(r);if(c)n[c.id]=c});if(rows.length<P)break;from+=P}
-    if(pending)return !!st;           // a write started while loading: keep local optimistic state
-    S=cleanS(st&&st.data);TX=n;return !!st;
+    if(pending)return !!st;
+    S=cleanS(st&&st.data);TX=n;
+    saveCache();
+    applyOB();return !!st;
   }
-  // run a write; on failure undo the optimistic change so the screen never shows unsaved data as saved
-  async function write(fn,undo){pending++;try{const r=await fn();if(r&&r.error)throw r.error}
-    catch(e){console.error(e);undo&&undo();render();toast('Gagal simpan ke awan — perubahan dibatalkan. Semak internet.');throw e}
+  // run a write; offline -> keep it in the outbox; other errors -> undo so the screen never shows unsaved data as saved
+  async function write(fn,undo,offline){pending++;try{const r=await fn();if(r&&r.error)throw r.error;saveCache()}
+    catch(e){console.error(e);
+      if(offline&&isNet(e)){offline();toast('Tiada internet — disimpan dalam telefon, akan disegerak.');return}
+      undo&&undo();render();toast('Gagal simpan ke awan — perubahan dibatalkan.');throw e}
     finally{pending--}}
   let hadSettings=false;
-  try{hadSettings=await load()}catch(e){console.error(e);banner='Tidak dapat muat data dari awan — semak internet, kemudian tekan Muat semula di Tetapan.'}
-  loading=false;
+  await flush();
+  try{hadSettings=await load()}catch(e){console.error(e);
+    let c=null;try{c=JSON.parse(localStorage.getItem(CK))}catch(_){}
+    if(c){S=cleanS(c.S);TX={};Object.values(c.TX||{}).forEach(t=>{const x=cleanTx(t);if(x)TX[x.id]=x});applyOB();hadSettings=true;banner='Luar talian — memaparkan data terakhir. Perubahan akan disegerak kemudian.'}
+    else banner='Tidak dapat muat data dari awan — semak internet, kemudian tekan Muat semula di Tetapan.'}
+  loading=false;if(obCount())syncNote();
+  window.addEventListener('online',()=>{if(store&&store.cloud&&store.uid===uid)store.reload()});
   let q=Promise.resolve();
-  return{cloud:true,hadSettings,
-    reload:async()=>{if(pending)return;try{await load();applyTheme();render()}catch(e){}},
+  return{cloud:true,uid,hadSettings,obCount,
+    reload:async()=>{if(pending)return;await flush();try{await load();if(/Luar talian|Tidak dapat/.test(banner))banner='';applyTheme();syncNote()}catch(e){}},
+    clearCache:()=>{try{localStorage.removeItem(CK);localStorage.removeItem(OBK)}catch(e){}},
     saveTx:t=>{const prev=TX[t.id];TX[t.id]=t;render();
-      return write(()=>sb.from('transactions').upsert(txRow(t,uid),{onConflict:'user_id,id'}),()=>{if(prev)TX[t.id]=prev;else delete TX[t.id]})},
+      return write(()=>sb.from('transactions').upsert(txRow(t,uid),{onConflict:'user_id,id'}),()=>{if(prev)TX[t.id]=prev;else delete TX[t.id]},()=>queue('up',t))},
     delTx:id=>{const prev=TX[id];delete TX[id];render();
-      return write(()=>sb.from('transactions').delete().eq('user_id',uid).eq('id',id),()=>{if(prev)TX[id]=prev})},
-    saveSettings:()=>{const body=JSON.parse(JSON.stringify(S));q=q.then(()=>write(()=>sb.from('settings').upsert({user_id:uid,data:body,updated_at:new Date().toISOString()}))).catch(()=>{});return q},
+      return write(()=>sb.from('transactions').delete().eq('user_id',uid).eq('id',id),()=>{if(prev)TX[id]=prev},()=>queue('del',id))},
+    saveSettings:()=>{const body=JSON.parse(JSON.stringify(S));q=q.then(()=>write(()=>sb.from('settings').upsert({user_id:uid,data:body,updated_at:new Date().toISOString()}),null,()=>queue('set',body))).catch(()=>{});return q},
     bulk:async list=>{const prev={...TX};list.forEach(t=>{TX[t.id]=t});render();
-      for(let k=0;k<list.length;k+=500)await write(()=>sb.from('transactions').upsert(list.slice(k,k+500).map(t=>txRow(t,uid)),{onConflict:'user_id,id'}),()=>{TX=prev})},
-    wipe:async()=>{const prev={...TX};TX={};render();await write(()=>sb.from('transactions').delete().eq('user_id',uid),()=>{TX=prev})},
+      for(let k=0;k<list.length;k+=500){const part=list.slice(k,k+500);
+        await write(()=>sb.from('transactions').upsert(part.map(t=>txRow(t,uid)),{onConflict:'user_id,id'}),()=>{TX=prev},()=>part.forEach(t=>queue('up',t)))}},
+    wipe:async()=>{if(!navigator.onLine){toast('Perlu internet untuk padam semua');throw new Error('offline')}
+      const prev={...TX};TX={};render();await write(()=>sb.from('transactions').delete().eq('user_id',uid),()=>{TX=prev})},
   };
 }
 async function startStore(){
@@ -699,7 +735,9 @@ document.addEventListener('click',async ev=>{
     case 'forgot':{const email=(document.getElementById('aEmail')||{}).value?.trim();if(!email)return toast('Masukkan emel dulu');
       const r=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});return toast(r.error?authMsg(r.error):'Pautan tetapan semula dihantar ke emel')}
     case 'setpw':{const p=document.getElementById('nPass').value;if(p.length<6)return toast('Kata laluan sekurang-kurangnya 6 aksara');const r=await sb.auth.updateUser({password:p});if(r.error)return toast(authMsg(r.error));closeSheet();return toast('Kata laluan dikemas kini')}
-    case 'logout':{if(!await ask('Log keluar? Data anda kekal selamat di awan.','Log keluar'))return;await sb.auth.signOut();view='home';return}
+    case 'logout':{const n=store&&store.obCount?store.obCount():0;
+      if(!await ask(n?`${n} perubahan belum disegerak dan akan HILANG jika log keluar sekarang. Sambung ke internet dulu untuk selamatkan. Teruskan log keluar?`:'Log keluar? Data anda kekal selamat di awan.','Log keluar'))return;
+      store&&store.clearCache&&store.clearCache();await sb.auth.signOut();view='home';return}
   }
 });
 let qT;
@@ -729,6 +767,7 @@ document.addEventListener('change',e=>{
   }catch(e){console.error(e);sb=null}
   await startStore();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&store&&store.reload)store.reload()});
+  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
   // keep "today" correct if the app stays open past midnight
   let lastDay=today();setInterval(()=>{if(today()!==lastDay){if(ym===lastDay.slice(0,7))ym=curYM();lastDay=today();render()}},60000);
 })();
