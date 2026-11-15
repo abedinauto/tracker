@@ -11,5 +11,17 @@ App penjejak perbelanjaan peribadi — satu fail `index.html`, tanpa build.
 - Sandaran & pulih JSON
 
 ## Guna
-Buka `index.html` dalam pelayar, atau hos di GitHub Pages / Cloudflare Pages / Vercel.
-Bila dihos sendiri, data disimpan dalam pelayar (localStorage) — buat sandaran selalu di Tetapan.
+Live: https://abedinauto.github.io/tracker/
+
+## Storan data
+- **Log masuk (Tetapan → Akaun awan):** data disimpan di Supabase (`transactions`, `settings`).
+  Row Level Security memastikan setiap pengguna hanya boleh baca/tulis data sendiri.
+- **Tanpa log masuk:** data disimpan dalam pelayar (localStorage). Bila log masuk kali pertama,
+  app tawarkan untuk pindahkan data tempatan ke awan.
+
+Kunci `sb_publishable_...` dalam `index.html` memang selamat untuk didedahkan — akses dikawal oleh RLS.
+
+### Tetapan Supabase yang perlu
+Authentication → URL Configuration:
+- Site URL: `https://abedinauto.github.io/tracker/`
+- Redirect URLs: `https://abedinauto.github.io/tracker/`

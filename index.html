@@ -164,6 +164,7 @@ body.dark .fab{color:#1a1816}
 <div class="toast" id="toast"></div>
 <div class="dlg" id="dlg"><div class="box"><p id="dlgMsg"></p><div class="btns"><button class="btn ghost" id="dlgNo">Batal</button><button class="btn" id="dlgYes">Ya</button></div></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ========== DATA ========== */
 const PALETTE=['#e57373','#f0a35e','#e8c547','#8bc77b','#4db6ac','#64b5f6','#7986cb','#ba68c8','#f06292','#a1887f','#90a4ae','#6d8f5e'];
@@ -201,46 +202,73 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function cat(id){return S.cats.find(c=>c.id===id)||{id:'',name:'Tanpa kategori',icon:'❔',color:'#9e9e9e',type:'exp'}}
 
 /* ========== STORE ========== */
+const SB_URL='https://abqrgiebeoyzowvxeggj.supabase.co';
+const SB_KEY='sb_publishable_ofappLwL3Q_OZzlmlcbNqQ_y5y-fC3B';
+const LK='belanja-aku-v1';
+let sb=null, session=null, storeGen=0;
+function readLocal(){try{const raw=localStorage.getItem(LK);return raw?JSON.parse(raw):null}catch(e){return null}}
+function writeLocal(d){try{localStorage.setItem(LK,JSON.stringify(d))}catch(e){}}
 function localStore(){
-  const K='belanja-aku-v1';
   let ok=true;
-  try{const raw=localStorage.getItem(K);if(raw){const d=JSON.parse(raw);S={...DEF,...d.S};TX=d.TX||{}}}catch(e){ok=false}
-  const persist=()=>{try{localStorage.setItem(K,JSON.stringify({S,TX}))}catch(e){}};
-  banner=ok?'Mod tempatan: data disimpan dalam pelayar ini sahaja. Buat sandaran selalu di Tetapan.':'Storan tidak tersedia — data akan hilang bila halaman ditutup.';
+  try{const d=readLocal();S=d&&d.S?{...DEF,...d.S}:JSON.parse(JSON.stringify(DEF));TX=(d&&d.TX)||{}}catch(e){ok=false}
+  const persist=()=>{const d=readLocal()||{};writeLocal({...d,S,TX})};
+  banner=!ok?'Storan tidak tersedia — data akan hilang bila halaman ditutup.':sb?'Mod tempatan — log masuk di Tetapan untuk simpan data di awan.':'Mod tempatan: data dalam pelayar ini sahaja.';
   loading=false;
-  return{
+  return{cloud:false,
     saveTx:async t=>{TX[t.id]=t;persist()},
     delTx:async id=>{delete TX[id];persist()},
     saveSettings:async()=>{persist()},
+    bulk:async list=>{list.forEach(t=>TX[t.id]=t);persist()},
+    wipe:async()=>{TX={};persist()},
   };
 }
-async function cloudStore(){
-  if(!window.claude||!claude.use)return null;
-  let db,user;
-  try{[db,user]=await Promise.all([claude.use('db'),claude.use('user')])}catch(e){return null}
-  if(!db||!user)return null;
-  let uid=null;try{uid=await user.id()}catch(e){}
-  if(!uid)return null;
-  const root='data/users/'+uid;
-  const setDoc=db.doc(root+'/settings');
-  const txCol=db.doc(root+'/profile').collection('tx');
+function txRow(t,uid){return{user_id:uid,id:t.id,type:t.type,amt:t.amt,cat:t.cat||'',date:t.date,note:t.note||'',ts:t.ts||0}}
+async function supaStore(){
+  const uid=session.user.id;
+  loading=true;banner='';render();
+  const chk=r=>{if(r.error)throw r.error;return r.data};
+  async function load(){
+    const st=chk(await sb.from('settings').select('data').eq('user_id',uid).maybeSingle());
+    const nS=st&&st.data&&Object.keys(st.data).length?{...DEF,...st.data}:JSON.parse(JSON.stringify(DEF));
+    if(!Array.isArray(nS.cats)||!nS.cats.length)nS.cats=seedCats();
+    const n={};let from=0;const P=1000;
+    for(;;){const rows=chk(await sb.from('transactions').select('id,type,amt,cat,date,note,ts').eq('user_id',uid).order('date').order('id').range(from,from+P-1));
+      rows.forEach(r=>{n[r.id]={...r,amt:+r.amt,ts:+r.ts||0}});if(rows.length<P)break;from+=P}
+    S=nS;TX=n;return !!st;
+  }
+  const fail=e=>{console.error(e);toast('Gagal simpan ke awan. Semak internet & cuba lagi.');throw e};
+  let hadSettings=false;
+  try{hadSettings=await load()}catch(e){console.error(e);banner='Tidak dapat muat data dari awan — semak internet, kemudian buka semula app.'}
+  loading=false;
   let q=Promise.resolve();
-  const timer=setTimeout(()=>{if(loading){banner='Data belum dapat dicapai — semak sambungan. Paparan mungkin tidak terkini.';loading=false;render()}},10000);
-  setDoc.onSnapshot(s=>{if(s.exists){const d=JSON.parse(JSON.stringify(s.data()));S={...DEF,...d};if(!Array.isArray(S.cats)||!S.cats.length)S.cats=seedCats()}applyTheme();render()},
-    e=>{banner='Tetapan tidak dapat dimuatkan.';render()});
-  txCol.onSnapshot(qs=>{const n={};qs.docs.forEach(d=>{n[d.id]={id:d.id,...d.data()}});TX=n;
-      if(!qs.metadata.fromCache){clearTimeout(timer);if(loading){loading=false;banner=''}}render()},
-    e=>{clearTimeout(timer);loading=false;banner='Transaksi tidak dapat dimuatkan ('+e.code+').';render()});
-  const wrap=async(fn)=>{try{await fn()}catch(e){
-      if(e&&e.code==='quota_exceeded')toast('Storan penuh — padam transaksi lama dulu.');
-      else if(e&&e.code==='unavailable'){await new Promise(r=>setTimeout(r,800+Math.random()*700));try{await fn()}catch(_){toast('Gagal simpan. Cuba lagi.')}}
-      else toast('Gagal simpan. Cuba lagi.');throw e}};
-  return{
-    saveTx:t=>{TX[t.id]=t;render();const {id,...body}=t;return wrap(()=>txCol.doc(id).set(body))},
-    delTx:id=>{delete TX[id];render();return wrap(()=>txCol.doc(id).delete())},
-    saveSettings:()=>{const body=JSON.parse(JSON.stringify(S));q=q.then(()=>wrap(()=>setDoc.set(body))).catch(()=>{});return q},
+  return{cloud:true,hadSettings,
+    reload:async()=>{try{await load();applyTheme();render()}catch(e){}},
+    saveTx:async t=>{TX[t.id]=t;render();const r=await sb.from('transactions').upsert(txRow(t,uid),{onConflict:'user_id,id'});if(r.error)fail(r.error)},
+    delTx:async id=>{delete TX[id];render();const r=await sb.from('transactions').delete().eq('user_id',uid).eq('id',id);if(r.error)fail(r.error)},
+    saveSettings:()=>{const body=JSON.parse(JSON.stringify(S));q=q.then(async()=>{const r=await sb.from('settings').upsert({user_id:uid,data:body,updated_at:new Date().toISOString()});if(r.error)fail(r.error)}).catch(()=>{});return q},
+    bulk:async list=>{list.forEach(t=>{TX[t.id]=t});render();for(let k=0;k<list.length;k+=500){const r=await sb.from('transactions').upsert(list.slice(k,k+500).map(t=>txRow(t,uid)),{onConflict:'user_id,id'});if(r.error)fail(r.error)}},
+    wipe:async()=>{TX={};render();const r=await sb.from('transactions').delete().eq('user_id',uid);if(r.error)fail(r.error)},
   };
 }
+async function startStore(){
+  const my=++storeGen;
+  const st=session&&sb?await supaStore():localStore();
+  if(my!==storeGen)return;
+  store=st;applyTheme();render();
+  if(!st.cloud)return;
+  const d=readLocal();const list=d&&d.TX?Object.values(d.TX):[];
+  if(list.length&&!(d.movedTo||[]).includes(session.user.id)){
+    const yes=await ask(`Ada ${list.length} transaksi tersimpan dalam pelayar ini. Pindahkan ke akaun awan anda?`,'Pindahkan');
+    writeLocal({...d,movedTo:[...(d.movedTo||[]),session.user.id]});
+    if(yes&&my===storeGen){
+      if(!st.hadSettings&&d.S){S={...DEF,...d.S};saveS()}
+      try{await st.bulk(list);toast(list.length+' transaksi dipindahkan ✓')}catch(e){}
+    }
+  }
+}
+const AUTH_ERR={'Invalid login credentials':'Emel atau kata laluan salah.','Email not confirmed':'Emel belum disahkan — semak peti masuk anda.','User already registered':'Emel ini sudah berdaftar. Sila log masuk.'};
+function authMsg(e){const m=e&&e.message||'';return AUTH_ERR[m]||(/rate limit/i.test(m)?'Terlalu banyak cubaan. Tunggu sebentar.':/at least 6/i.test(m)?'Kata laluan mesti sekurang-kurangnya 6 aksara.':'Ralat: '+m)}
+function pwSheet(){openSheet(`<h2>Tetapkan kata laluan baru <button class="iconbtn" data-close>✕</button></h2><input id="nPass" type="password" class="inp" placeholder="Kata laluan baru (min 6)" autocomplete="new-password"><button class="btn mt" data-act="setpw">Simpan kata laluan</button>`)}
 
 /* ========== CALC ========== */
 function visibleTx(){const t=today();return Object.values(TX).filter(x=>x&&x.date&&(!S.hideFuture||x.date<=t))}
@@ -381,12 +409,27 @@ function vSet(){
     <div class="set"><label>Mod gelap</label><button class="sw ${S.theme==='dark'?'on':''}" data-tog="theme" aria-label="Mod gelap"></button></div>
     <div class="set"><label for="sCur">Simbol mata wang</label><input id="sCur" class="inp small-inp" maxlength="4" value="${esc(S.currency)}"></div>
   </div>
+  ${vAccount()}
   <div class="card"><h3>Sandaran</h3>
-    <p class="note" style="margin-top:0">${store&&store.cloud?'Data anda disimpan dalam akaun Claude anda dan hanya anda boleh melihatnya. Sandaran JSON berguna untuk simpanan tambahan.':'Data disimpan dalam pelayar ini sahaja. Salin sandaran JSON dan simpan di Notes / WhatsApp sendiri.'}</p>
+    <p class="note" style="margin-top:0">${store&&store.cloud?'Data anda disimpan di awan (Supabase) dan hanya anda boleh melihatnya. Sandaran JSON berguna untuk simpanan tambahan.':'Data disimpan dalam pelayar ini sahaja. Salin sandaran JSON dan simpan di Notes / WhatsApp sendiri.'}</p>
     <div class="btns"><button class="btn ghost" data-act="backup">Salin sandaran</button><button class="btn ghost" data-act="restore">Pulihkan</button></div>
     <button class="btn danger mt" data-act="wipe">Padam semua transaksi</button>
   </div>
   <p class="note" style="text-align:center">${Object.keys(TX).length} transaksi · ${S.cats.length} kategori</p>`;
+}
+
+function vAccount(){
+  if(!sb)return `<div class="card"><h3>Akaun awan</h3><p class="note" style="margin:0">Sambungan ke Supabase tidak dapat dimuatkan. Semak internet dan buka semula app.</p></div>`;
+  if(session)return `<div class="card"><h3>Akaun awan <span style="color:#2f8a4a">● Disambung</span></h3>
+    <div class="set"><div><label>Log masuk sebagai</label><div class="sub">${esc(session.user.email)}</div></div></div>
+    <p class="note">Data disegerakkan ke Supabase — buka app di telefon atau komputer lain dengan akaun yang sama.</p>
+    <div class="btns"><button class="btn ghost" data-act="reload">Muat semula</button><button class="btn ghost" data-act="logout">Log keluar</button></div></div>`;
+  return `<div class="card"><h3>Akaun awan</h3>
+    <p class="note" style="margin-top:0">Log masuk untuk simpan data di awan dan guna di semua peranti. Tanpa log masuk, data hanya dalam pelayar ini.</p>
+    <input id="aEmail" type="email" class="inp" placeholder="Emel" autocomplete="email">
+    <input id="aPass" type="password" class="inp mt" placeholder="Kata laluan (min 6 aksara)" autocomplete="current-password">
+    <div class="btns mt"><button class="btn" data-act="login">Log masuk</button><button class="btn ghost" data-act="signup">Daftar</button></div>
+    <button class="act mt" style="color:var(--brown);font-weight:700;font-size:14px" data-act="forgot">Lupa kata laluan?</button></div>`;
 }
 
 /* ========== SHEETS ========== */
@@ -461,7 +504,7 @@ document.addEventListener('click',async ev=>{
   if(d.pick){draft.cat=d.pick;$sheet.querySelectorAll('.catpick').forEach(b=>b.classList.toggle('on',b.dataset.pick===d.pick));return}
   if(d.emoji){readCatForm();cdraft.icon=d.emoji;return drawCat()}
   if(d.color){readCatForm();cdraft.color=d.color;return drawCat()}
-  if(['savetx','duptx','deltx','dorestore','wipe'].includes(d.act)&&!store)return toast('Sedang memuatkan… cuba sebentar lagi');
+  if(['savetx','duptx','deltx','dorestore','wipe','reload'].includes(d.act)&&!store)return toast('Sedang memuatkan… cuba sebentar lagi');
   switch(d.act){
     case 'prev':ym=shiftYM(ym,-1);return render();
     case 'next':ym=shiftYM(ym,1);return render();
@@ -488,10 +531,21 @@ document.addEventListener('click',async ev=>{
     case 'dorestore':{let d;try{d=JSON.parse(document.getElementById('rTxt').value)}catch(e){return toast('JSON tidak sah')}
       if(!d||d.app!=='belanja-aku'||!Array.isArray(d.tx))return toast('Bukan fail sandaran Belanja Aku');
       closeSheet();if(d.settings&&typeof d.settings==='object'){S={...DEF,...d.settings};saveS()}
-      let n=0;for(const t of d.tx){if(!t||!t.id||!(+t.amt>0)||!/^\d{4}-\d\d-\d\d$/.test(t.date||''))continue;try{await store.saveTx({id:String(t.id),type:t.type==='inc'?'inc':'exp',amt:+t.amt,cat:String(t.cat||''),date:t.date,note:String(t.note||'').slice(0,200),ts:+t.ts||Date.now()});n++}catch(e){break}}
-      render();return toast(n+' transaksi dipulihkan')}
+      const list=d.tx.filter(t=>t&&t.id&&+t.amt>0&&/^\d{4}-\d\d-\d\d$/.test(t.date||'')).map(t=>({id:String(t.id),type:t.type==='inc'?'inc':'exp',amt:Math.round(+t.amt*100)/100,cat:String(t.cat||''),date:t.date,note:String(t.note||'').slice(0,200),ts:+t.ts||Date.now()}));
+      try{await store.bulk(list);render();toast(list.length+' transaksi dipulihkan')}catch(e){}return}
     case 'wipe':{if(!await ask('Padam SEMUA transaksi? Tindakan ini tidak boleh dibatalkan. Salin sandaran dulu jika perlu.','Padam semua'))return;
-      const ids=Object.keys(TX);for(const id of ids){try{await store.delTx(id)}catch(e){}}render();return toast('Semua transaksi dipadam')}
+      try{await store.wipe();toast('Semua transaksi dipadam')}catch(e){}render();return}
+    case 'reload':if(store.reload)await store.reload();return toast('Dikemas kini');
+    case 'login':case 'signup':{const email=(document.getElementById('aEmail')||{}).value?.trim(),password=(document.getElementById('aPass')||{}).value||'';
+      if(!email||!password)return toast('Masukkan emel dan kata laluan');el.disabled=true;
+      try{if(d.act==='login'){const r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;toast('Selamat datang!')}
+        else{const r=await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});if(r.error)throw r.error;
+          if(!r.data.session)await ask('Akaun didaftar. Semak emel anda dan tekan pautan pengesahan, kemudian kembali ke sini dan log masuk.','OK')}}
+      catch(e){toast(authMsg(e))}finally{el.disabled=false}return}
+    case 'forgot':{const email=(document.getElementById('aEmail')||{}).value?.trim();if(!email)return toast('Masukkan emel dulu');
+      const r=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});return toast(r.error?authMsg(r.error):'Pautan tetapan semula dihantar ke emel')}
+    case 'setpw':{const p=document.getElementById('nPass').value;const r=await sb.auth.updateUser({password:p});if(r.error)return toast(authMsg(r.error));closeSheet();return toast('Kata laluan dikemas kini')}
+    case 'logout':{if(!await ask('Log keluar? Data anda kekal selamat di awan.','Log keluar'))return;await sb.auth.signOut();view='home';return}
   }
 });
 document.addEventListener('input',e=>{
@@ -505,9 +559,19 @@ document.addEventListener('change',e=>{
 /* ========== BOOT ========== */
 (async()=>{
   applyTheme();render();
-  const c=await cloudStore();
-  if(c){store={...c,cloud:true}}else{store=localStore();applyTheme()}
-  render();
+  try{
+    if(window.supabase&&supabase.createClient){
+      sb=supabase.createClient(SB_URL,SB_KEY);
+      const {data}=await sb.auth.getSession();session=data.session;
+      sb.auth.onAuthStateChange((ev,s)=>{
+        if(ev==='PASSWORD_RECOVERY')setTimeout(pwSheet,0);
+        const was=session&&session.user.id,now=s&&s.user.id;session=s;
+        if(was!==now)setTimeout(startStore,0);
+      });
+    }
+  }catch(e){console.error(e);sb=null}
+  await startStore();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&store&&store.reload)store.reload()});
 })();
 </script>
 </body>
